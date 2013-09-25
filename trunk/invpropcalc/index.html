@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>Investment Property Calculator</title>
+<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no, width=device-width" />
+<meta name="HandheldFriendly" content="true"/>
+<meta name="MobileOptimized" content="width" />
+<link rel="stylesheet" type="text/css" href="../common/style.css" />
+<style>
+input{
+text-align:right;
+width:100%;
+}
+#rating{display:block;width:100%;}
+table{width:100%;}
+#t1 td:nth-child(1){min-width:200px;}
+#t2 td:nth-child(1){width:180px;}
+#t2 td:nth-child(2){text-align:center;}
+</style>
+<script type='text/javascript' src='../common/jquery-min.js'></script>
+<script>
+$(document).ready(function(){
+  $('#house, #rent').change(recalc).keyup(recalc)
+  $('#house').focus()
+})
+function recalc(){
+  var house = $('#house').val() *1000
+  var rent = $('#rent').val() *52
+  console.debug("house="+house+",rent="+rent) 
+  var factor = (house/rent).toFixed(2)
+  var percent = (rent/house*100).toFixed(2)
+  $('#factor').html(factor)
+  $('#rating').html(factor < 10 ? "Very Good" : factor < 15 ? "Good" : factor < 20 ? "Average" : "Poor")
+  $('#rating').css('background-color',factor < 10 ? "green" : factor < 15 ? "yellow" : factor < 20 ? "orange" : "red")
+  $('#percent').html(percent + "%")
+
+}
+</script>
+</head>
+<body>
+<label id="h1">Investment Property Calculator</label>
+<table id="t1">
+<tr><td><label>Property Value ($,000)</label></td><td><input id="house" type="number" value="0"/></td></tr>
+<tr><td><label>Rental Value ($/wk)</label></td><td><input id="rent" type="number" value="0"/></td></tr>
+</table>
+<table id="t2">
+<tr><td><label>Ratio</label></td><td><label id="factor">0.0</label></td></tr>
+<tr><td><label>Rating</label></td><td><label id="rating">-</label></td></tr>
+<tr><td><label>Return Percentage</label></td><td><label id="percent">0.0%</label></td></tr>
+</table>
+</body></html>
+
+
+

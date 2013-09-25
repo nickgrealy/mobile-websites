@@ -18,14 +18,15 @@ table{width:100%;}
 </style>
 <script type='text/javascript' src='../common/jquery-min.js'></script>
 <script>
+var localeOptions = {style: "currency", currency: "AUD", minimumFractionDigits: 2}
 var config = {
 	inputs: [
-		{name:"house", label:"Property Value ($,000)", init:'0', multiplier:1000},
-		{name:"rent", label:"Rent Value ($/wk)", init:'0', multiplier:52},
-		{name:"strata", label:"Strata ($/qtr)", init:'0', multiplier:-4},
-		{name:"water", label:"Water ($/qtr)", init:'0', multiplier:-4},
-		{name:"council", label:"Council ($/qtr)", init:'0', multiplier:-4},
-		{name:"size", label:"Size (m&sup2;)", init:'0', multiplier:1}
+		{name:"house", label:"Property Value ($,000)", init:'', multiplier:1000},
+		{name:"rent", label:"Rent Value ($/wk)", init:'', multiplier:52},
+		{name:"strata", label:"Strata ($/qtr)", init:'', multiplier:-4},
+		{name:"water", label:"Water ($/qtr)", init:'', multiplier:-4},
+		{name:"council", label:"Council ($/qtr)", init:'', multiplier:-4},
+		{name:"size", label:"Size (m&sup2;)", init:'', multiplier:1}
 	],
 	outputs: [
 		{name:"factor", label:"Ratio", init:'0.0'},
@@ -65,7 +66,7 @@ function recalc(){
 	$('#rating').html(factor < 10 ? "Very Good" : factor < 15 ? "Good" : factor < 20 ? "Average" : "Poor")
 	$('#rating').css('background-color',factor < 10 ? "green" : factor < 15 ? "yellow" : factor < 20 ? "orange" : "red")
 	$('#percent').html(percent + "%")
-	$('#valpersqm').html((inv.house/inv.size).toFixed(2))
+	$('#valpersqm').html((inv.house/inv.size).toLocaleString("en-AU", localeOptions))
 }
 </script>
 </head>

@@ -26,13 +26,22 @@ var config = {
 		{name:"strata", label:"Strata ($/qtr)", init:'', multiplier:-4},
 		{name:"water", label:"Water ($/qtr)", init:'', multiplier:-4},
 		{name:"council", label:"Council ($/qtr)", init:'', multiplier:-4},
-		{name:"size", label:"Size (m&sup2;)", init:'', multiplier:1}
+		{name:"size", label:"Size (m&sup2;)", init:'', multiplier:1},
+		{name:"mortgage", label:"Mortgage Amount ($,000)", init:'', multiplier:-1000},
+		{name:"mortgageint", label:"Mortgage Interest Rate (%)", init:'5.9', multiplier:0.01}
+		/*
+		,
+		{name:"mortgageterm", label:"Mortgage Term (years)", init:'30', multiplier:1},
+		*/
 	],
 	outputs: [
-		{name:"factor", label:"Ratio", init:'0.0'},
-		{name:"rating", label:"Rating", init:'-'},
+		{name:"ionly", label:"Mortgage Payments Int Only ($/wk)", init:'0.0'},
+		//{name:"ip30yr", label:"Int & Pri @ 30yrs ($/wk)", init:'0.0'},
+		{name:"incomingsAndOutgoings", label:"In/Outgoings ($/wk)", init:'0.0'},
 		{name:"percent", label:"Return Percentage", init:'0.0%'},
-		{name:"valpersqm", label:"Cost ($/m&sup2;)", init:'0.0'}
+		{name:"valpersqm", label:"Cost ($/m&sup2;)", init:'0.0'},
+		{name:"ratio", label:"Ratio (PropVal/(In+Out)", init:'0.0'},
+		{name:"rating", label:"Rating", init:'-'}
 	]
 }
 $(document).ready(function(){
@@ -59,14 +68,26 @@ function recalc(){
 	$.each(config.inputs, function(idx, input){
 		inv[input.name] = $('#'+input.name).val() * config.inputs[idx].multiplier
 	})
-	var outgoingsAndIncomings = inv.rent+inv.strata+inv.council+inv.water
-	var factor = (inv.house/outgoingsAndIncomings).toFixed(2)
-	var percent = (outgoingsAndIncomings/inv.house*100).toFixed(2)
-	$('#factor').html(factor)
-	$('#rating').html(factor < 10 ? "Very Good" : factor < 15 ? "Good" : factor < 20 ? "Average" : "Poor")
-	$('#rating').css('background-color',factor < 10 ? "green" : factor < 15 ? "yellow" : factor < 20 ? "orange" : "red")
-	$('#percent').html(percent + "%")
-	$('#valpersqm').html(Number((inv.house/inv.size).toFixed(2)).toLocaleString("en-AU", localeOptions))
+	//console.debug(inv)
+	var notapplicable = 'N/A'
+	var mortgageRepaymentsPerYr = inv.mortgage*inv.mortgageint
+	var incomingsPerYr = inv.rent
+	var outgoingsPerYr = inv.strata + inv.council + inv.water + mortgageRepaymentsPerYr
+	//console.debug('outgoings='+outgoingsPerYr+' mortgagewklypayments='+mortgageRepaymentsPerYr)
+	var incomingsAndOutgoings = incomingsPerYr + outgoingsPerYr
+	var ratio = inv.house/incomingsAndOutgoings
+	var percent = incomingsAndOutgoings/inv.house*100
+	$('#ionly').html(curr(mortgageRepaymentsPerYr/52)).css('color','red')
+	$('#incomingsAndOutgoings').html(curr(incomingsAndOutgoings/52)).css('color',incomingsAndOutgoings > -1 ? 'black' : 'red')
+	$('#percent').html(percent.toFixed(2) + "%").css('color',incomingsAndOutgoings > -1 ? 'black' : 'red')
+	$('#valpersqm').html(curr(inv.house/inv.size))
+	// ---
+	$('#ratio').html(incomingsAndOutgoings != '' ? ratio.toFixed(2) : notapplicable)
+	$('#rating').html(ratio < 0 ? notapplicable : ratio < 10 ? "Very Good" : ratio < 15 ? "Good" : ratio < 20 ? "Average" : "Poor")
+				.css('background-color',ratio < 0 ? "lightgrey" : ratio < 10 ? "green" : ratio < 15 ? "yellow" : ratio < 20 ? "orange" : "red")
+}
+function curr(number){
+	return Number(number.toFixed(2)).toLocaleString("en-AU", localeOptions)
 }
 </script>
 </head>

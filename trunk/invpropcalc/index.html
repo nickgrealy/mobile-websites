@@ -66,7 +66,7 @@ function recalc(){
 	$('#rating').html(factor < 10 ? "Very Good" : factor < 15 ? "Good" : factor < 20 ? "Average" : "Poor")
 	$('#rating').css('background-color',factor < 10 ? "green" : factor < 15 ? "yellow" : factor < 20 ? "orange" : "red")
 	$('#percent').html(percent + "%")
-	$('#valpersqm').html((inv.house/inv.size).toLocaleString("en-AU", localeOptions))
+	$('#valpersqm').html(Number((inv.house/inv.size).toFixed(2)).toLocaleString("en-AU", localeOptions))
 }
 </script>
 </head>

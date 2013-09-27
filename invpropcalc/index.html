@@ -6,47 +6,48 @@
 <meta name="MobileOptimized" content="width" />
 <link rel="stylesheet" type="text/css" href="../common/style.css" />
 <style>
-input{
-text-align:right;
-width:100%;
-}
-#rating{display:block;width:100%;}
-table{width:100%;}
-#t1 td:nth-child(1){min-width:200px;}
-#t2 td:nth-child(1){width:180px;}
-#t2 td:nth-child(2){text-align:center;}
+
+input{text-align:right;width:100%;}
+table{width:100%;border-collapse:collapse;margin-top:8px;}
+tr{border:1px solid grey;}
+td{white-space:nowrap;padding:0px 2px;}
+td:nth-child(2){width:8px;}
+td:nth-child(3){text-align:right;}
+td:nth-child(4){width:24px;}
+#h1{font-weight:bold;text-align:center;}
+#rating{display:block;width:100%;text-align:center;	}
 </style>
 <script type='text/javascript' src='../common/jquery-min.js'></script>
 <script>
-var localeOptions = {style: "currency", currency: "AUD", minimumFractionDigits: 2}
 var config = {
 	inputs: [
-		{name:"house", label:"Property Value ($,000)", init:'', multiplier:1000},
-		{name:"rent", label:"Rent Value ($/wk)", init:'', multiplier:52},
-		{name:"strata", label:"Strata ($/qtr)", init:'', multiplier:-4},
-		{name:"water", label:"Water ($/qtr)", init:'', multiplier:-4},
-		{name:"council", label:"Council ($/qtr)", init:'', multiplier:-4},
-		{name:"size", label:"Size (m&sup2;)", init:'', multiplier:1},
-		{name:"mortgage", label:"Mortgage Amount ($,000)", init:'', multiplier:-1000},
-		{name:"mortgageint", label:"Mortgage Interest Rate (%)", init:'5.9', multiplier:0.01}
+		{name:"house", 		label:"Property Value",	unitspre:'$', unitspost:',000', init:'', multiplier:1000},
+		{name:"rent", 		label:"Rent Value", 	unitspre:'$', unitspost:'/wk', init:'', multiplier:52},
+		{name:"strata", 	label:"Strata", 		unitspre:'$', unitspost:'/qtr', init:'', multiplier:-4},
+		{name:"water", 		label:"Water", 			unitspre:'$', unitspost:'/qtr', init:'', multiplier:-4},
+		{name:"council", 	label:"Council", 		unitspre:'$', unitspost:'/qtr', init:'', multiplier:-4},
+		{name:"size", 		label:"Size", 			unitspre:'',  unitspost:'m&sup2;', init:'', multiplier:1},
+		{name:"mortgage", 	label:"Mortgage Amount",unitspre:'$', unitspost:',000', init:'', multiplier:-1000},
+		{name:"mortgageint",label:"Mortgage Interest Rate", unitspre:'', unitspost:'%', init:'5.9', multiplier:0.01}
 		/*
 		,
 		{name:"mortgageterm", label:"Mortgage Term (years)", init:'30', multiplier:1},
 		*/
 	],
 	outputs: [
-		{name:"ionly", label:"Mortgage Payments Int Only ($/wk)", init:'0.0'},
 		//{name:"ip30yr", label:"Int & Pri @ 30yrs ($/wk)", init:'0.0'},
-		{name:"incomingsAndOutgoings", label:"In/Outgoings ($/wk)", init:'0.0'},
-		{name:"percent", label:"Return Percentage", init:'0.0%'},
-		{name:"valpersqm", label:"Cost ($/m&sup2;)", init:'0.0'},
-		{name:"ratio", label:"Ratio (PropVal/(In+Out)", init:'0.0'},
-		{name:"rating", label:"Rating", init:'-'}
+		//{name:"ratio", 					label:"Ratio", 				unitspre:'',  unitspost:'', init:'0.0'},
+		{name:"ionly", 					label:"Mortgage Payments (Intst Only)",   unitspre:'$', unitspost:'/yr', init:'0.0'},
+		{name:"incomingsAndOutgoings",	label:"In/Outgoings",		unitspre:'$', unitspost:'/yr', init:'0.0'},
+		{name:"percent", 				label:"Return Percentage", 	unitspre:'',  unitspost:'%', init:'0.0'},
+		{name:"rating", 				label:"Rating", 			unitspre:'',  unitspost:'', init:'-'},
+		{name:"valpersqm", 				label:"Cost Per SQM", 				unitspre:'$', unitspost:'m&sup2;', init:'0.0'}
 	]
 }
 $(document).ready(function(){
 	build('inputs', config.inputs, true)
 	build('outputs', config.outputs, false)
+	$('input').focus(function(){this.select()})
 	$('#house').focus()
 })
 function build(tableId, fields, boolInputs){
@@ -54,6 +55,7 @@ function build(tableId, fields, boolInputs){
 	$.each(fields, function(idx, input){
 		var tr = $('<tr>').appendTo(table)
 		tr.append($('<td>').append($('<label>').html(input.label)))
+		tr.append($('<td>').append($('<label>').html(input.unitspre)))
 		if (boolInputs){
 			tr.append($('<td>').append(
 				$('<input>').attr('id',input.name).attr('type','number').val(input.init).change(recalc).keyup(recalc)
@@ -61,6 +63,7 @@ function build(tableId, fields, boolInputs){
 		} else {
 			tr.append($('<td>').append($('<label>').attr('id',input.name).html(input.init)))
 		}
+		tr.append($('<td>').append($('<label>').html(input.unitspost)))
 	})
 }
 function recalc(){
@@ -68,26 +71,24 @@ function recalc(){
 	$.each(config.inputs, function(idx, input){
 		inv[input.name] = $('#'+input.name).val() * config.inputs[idx].multiplier
 	})
-	//console.debug(inv)
+	console.debug(inv)
 	var notapplicable = 'N/A'
 	var mortgageRepaymentsPerYr = inv.mortgage*inv.mortgageint
 	var incomingsPerYr = inv.rent
 	var outgoingsPerYr = inv.strata + inv.council + inv.water + mortgageRepaymentsPerYr
 	//console.debug('outgoings='+outgoingsPerYr+' mortgagewklypayments='+mortgageRepaymentsPerYr)
-	var incomingsAndOutgoings = incomingsPerYr + outgoingsPerYr
-	var ratio = inv.house/incomingsAndOutgoings
-	var percent = incomingsAndOutgoings/inv.house*100
-	$('#ionly').html(curr(mortgageRepaymentsPerYr/52)).css('color','red')
-	$('#incomingsAndOutgoings').html(curr(incomingsAndOutgoings/52)).css('color',incomingsAndOutgoings > -1 ? 'black' : 'red')
-	$('#percent').html(percent.toFixed(2) + "%").css('color',incomingsAndOutgoings > -1 ? 'black' : 'red')
+	var inAndOutPerYear = incomingsPerYr + outgoingsPerYr
+	var percent = inAndOutPerYear/inv.house*100
+	$('#ionly').html(curr(mortgageRepaymentsPerYr)).css('color','red')
+	$('#incomingsAndOutgoings').html(curr(inAndOutPerYear)).css('color',inAndOutPerYear >= 0 ? 'black' : 'red')
+	$('#percent').html(percent.toFixed(2)).css('color',inAndOutPerYear > -1 ? 'black' : 'red')
 	$('#valpersqm').html(curr(inv.house/inv.size))
 	// ---
-	$('#ratio').html(incomingsAndOutgoings != '' ? ratio.toFixed(2) : notapplicable)
-	$('#rating').html(ratio < 0 ? notapplicable : ratio < 10 ? "Very Good" : ratio < 15 ? "Good" : ratio < 20 ? "Average" : "Poor")
-				.css('background-color',ratio < 0 ? "lightgrey" : ratio < 10 ? "green" : ratio < 15 ? "yellow" : ratio < 20 ? "orange" : "red")
+	$('#rating').html(percent > 6 ? "Very Good" : percent > 3 ? "Good" : percent >= 0 ? "Average" : "Poor")
+				.css('background-color', percent > 6 ? "green" : percent > 3 ? "yellow" : percent >= 0 ? "orange" : "red")
 }
 function curr(number){
-	return Number(number.toFixed(2)).toLocaleString("en-AU", localeOptions)
+	return Number(number.toFixed(2)).toLocaleString("en-AU", {style: "currency", currency: "AUD", minimumFractionDigits: 2})
 }
 </script>
 </head>

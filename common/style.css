@@ -1,22 +1,10 @@
-body{font-family:"Myriad Pro", Myriad, "Liberation Sans", "Nimbus Sans L", "Helvetica Neue", Helvetica, Arial, sans-serif;}
-label,input,a{
-display:block;
-text-decoration:none;
-padding:2px;
-height:24px;
-font-size:16px;
-line-height:16px;
-}
+body,input{font-family:"Myriad Pro", Myriad, "Liberation Sans", "Nimbus Sans L", "Helvetica Neue", Helvetica, Arial, sans-serif;}
 a{
 border:1px solid grey;
 border-radius:8px;
 text-align:right;
 }
-label#h1{
-font-weight:bold;
-text-align:center;
-padding-bottom:8px;
-}
+
 
 
 

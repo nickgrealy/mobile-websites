@@ -8,13 +8,13 @@
 <style>
 
 input{text-align:right;width:100%;}
-table{width:100%;border-collapse:collapse;margin-top:8px;}
-tr{border:1px solid grey;}
+table{width:100%;border-collapse:collapse;margin-top:8px;border:1px solid grey;}
+tr{border-bottom:1px solid lightgrey;}
 td{white-space:nowrap;padding:0px 2px;}
 td:nth-child(2){width:8px;}
 td:nth-child(3){text-align:right;}
 td:nth-child(4){width:24px;}
-#h1{font-weight:bold;text-align:center;}
+#h1{font-weight:bold;text-align:center;display:inline-block;width:100%;}
 #rating{display:block;width:100%;text-align:center;	}
 </style>
 <script type='text/javascript' src='../common/jquery-min.js'></script>
@@ -37,8 +37,8 @@ var config = {
 	outputs: [
 		//{name:"ip30yr", label:"Int & Pri @ 30yrs ($/wk)", init:'0.0'},
 		//{name:"ratio", 					label:"Ratio", 				unitspre:'',  unitspost:'', init:'0.0'},
-		{name:"ionly", 					label:"Mortgage Payments (Intst Only)",   unitspre:'$', unitspost:'/yr', init:'0.0'},
-		{name:"incomingsAndOutgoings",	label:"In/Outgoings",		unitspre:'$', unitspost:'/yr', init:'0.0'},
+		{name:"ionly", 					label:"Mortgage (IntOnly)",   unitspre:'$', unitspost:'/yr', init:'0.0'},
+		{name:"incomingsAndOutgoings",	label:"Total In/Out",		unitspre:'$', unitspost:'/yr', init:'0.0'},
 		{name:"percent", 				label:"Return Percentage", 	unitspre:'',  unitspost:'%', init:'0.0'},
 		{name:"rating", 				label:"Rating", 			unitspre:'',  unitspost:'', init:'-'},
 		{name:"valpersqm", 				label:"Cost Per SQM", 				unitspre:'$', unitspost:'m&sup2;', init:'0.0'}

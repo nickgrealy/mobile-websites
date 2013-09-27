@@ -48,6 +48,15 @@ $(document).ready(function(){
 	build('inputs', config.inputs, true)
 	build('outputs', config.outputs, false)
 	$('input').focus(function(){this.select()})
+		.keydown(function(e) {
+			var key = e.charCode ? e.charCode : e.keyCode ? e.keyCode : 0
+			if(key == 13) {
+				e.preventDefault()
+				var inputs = $(this).closest('body').find(':input:visible')
+				inputs.eq( inputs.index(this)+ 1 ).focus()
+			}
+		}
+	)
 	$('#house').focus()
 })
 function build(tableId, fields, boolInputs){
@@ -93,7 +102,7 @@ function curr(number){
 </script>
 </head>
 <body>
-<label id="h1">Investment Property Calculator</label>
+<!--label id="h1">Investment Property Calculator</label-->
 <table id="inputs" />
 <table id="outputs" />
 </body></html>

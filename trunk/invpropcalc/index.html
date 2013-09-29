@@ -6,8 +6,7 @@
 <meta name="MobileOptimized" content="width" />
 <link rel="stylesheet" type="text/css" href="../common/style.css" />
 <style>
-
-input{text-align:right;width:100%;}
+input{text-align:right;display:table-cell;width:100%;}
 table{width:100%;border-collapse:collapse;margin-top:8px;border:1px solid grey;}
 tr{border-bottom:1px solid lightgrey;}
 td{white-space:nowrap;padding:0px 2px;}
@@ -61,7 +60,7 @@ function build(tableId, fields, boolInputs){
 		tr.append($('<td>').append($('<label>').html(input.unitspre)))
 		if (boolInputs){
 			tr.append($('<td>').append(
-				$('<input>').attr('id',input.name).attr('type','number').val(input.init).change(recalc).keyup(recalc)
+				$('<input>').attr('id',input.name).attr('type','number').attr('pattern','-?\d*\.?\d*').val(input.init).change(recalc).keyup(recalc)
 			))
 		} else {
 			tr.append($('<td>').append($('<label>').attr('id',input.name).html(input.init)))

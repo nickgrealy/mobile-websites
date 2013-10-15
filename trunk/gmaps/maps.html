@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <script src="../common/jquery-min.js"></script>
+    <style type="text/css">
+html { height: 100% }
+body { height: 100%; margin: 0; padding: 0 }
+#map-canvas { height: 100% }
+#custom_nav > div:nth-child(1),#custom_nav > div {border:1px solid grey;}
+#custom_nav > div {border-left:0px;}
+#custom_nav {display:inline-block;margin-top:4px;}
+#custom_nav > div { width:110px;height:20px;text-align:center;index:1;background-color:white;float:left; }
+#custom_nav input[type='radio'] { height:12px;top:2px;position:relative; }
+#custom_nav label { font-family;Arial,sans-serif;font-size:12px;padding:0px 4px; }
+    </style>
+    <script type="text/javascript">
+var sydney = null
+var map = null
+var drawingManager = null
+var fixedCircleWidth = 1000
+$(document).ready(function(){
+    extend()
+})
+function extend(){
+    $.fn.extend({ radio: function(name, vals){
+        return this.each(function() {
+            var tmp2 = $(this)
+                $.each(vals, function(index, val){
+                var tmp = $('<div>').appendTo(tmp2)
+                tmp.append('<label for="'+val.replace(/ /g,'_')+'">'+val+'</label>') 
+                tmp.append('<input type="radio" name="'+name+'" id="'+val.replace(/ /g,'_')+'" value="'+val+'"></input>')
+            })
+        })
+    }})
+}
+var genericOptions = {
+    fillColor: '#FF0000',
+    fillOpacity: 0.3,
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8,
+    strokeWeight: 1,
+    clickable: true,
+    editable: true,
+    zIndex: 1
+}
+function initialize() {
+  sydney = new google.maps.LatLng(-33.865458019102896,151.20902359485626)
+  var mapOptions = {
+    zoom: 15,
+    //disableDefaultUI: true,
+    panControl: true,
+    zoomControl: true,
+    mapTypeControl: true,
+    scaleControl: true,
+    streetViewControl: false,
+    overviewMapControl: true,
+    center: sydney,
+    draggableCursor: '',
+    mapTypeId: google.maps.MapTypeId.ROADMAP // google.maps.MapTypeId.TERRAIN
+  }
+    map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+    loadOverlays(map)
+    drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: null,
+        drawingControl: false,
+        drawingControlOptions: {
+          position: google.maps.ControlPosition.TOP_CENTER,
+          drawingModes: [
+            google.maps.drawing.OverlayType.CIRCLE
+          ]
+        },
+        circleOptions: genericOptions,
+        polygonOptions: genericOptions,
+        polylineOptions: genericOptions,
+        rectangleOptions: genericOptions
+    });
+    drawingManager.setMap(map);
+    google.maps.event.addListener(drawingManager, 'overlaycomplete', function(event) {
+        overlayComplete(event.overlay)
+    })
+    google.maps.event.addListenerOnce(map, 'idle', function(){
+        pageLoaded()
+    })
+}
+var fixedCircleRadius= 10000
+var fixedCircleEnabled = false
+function pageLoaded(){
+    var controlDiv = $('<div>').attr('id','custom_nav')
+    controlDiv.radio('custom_nav', ['Hand','Circle','Circle Fixed'])
+    map.controls[google.maps.ControlPosition.TOP_CENTER].push(controlDiv.get(0))
+    $('#Circle_Fixed').click(function(){toggleEditing(true);drawingManager.setDrawingMode(null);updateFixedCircle(parseFloat(prompt("Please supply a radius in km:",5))*1000)})
+    $('#Circle').click(function(){updateFixedCircle(-1);toggleEditing(true);drawingManager.setDrawingMode(google.maps.drawing.OverlayType.CIRCLE)})
+    $('#Hand').click(function(){updateFixedCircle(-1);toggleEditing(false);drawingManager.setDrawingMode(null)})
+}
+var FixedCircle = {
+    enabled: false,
+    radius: 10000,
+    listener: null,
+}
+function toggleEditing(boolEditable){
+    if (lastClicked != null){lastClicked.setOptions({ editable: boolEditable })}
+}
+function updateFixedCircle(radius){
+    FixedCircle.radius = radius
+    FixedCircle.enabled = radius >= 0
+    if (FixedCircle.enabled){
+        map.setOptions({draggableCursor:'crosshair'});
+        if (FixedCircle.listener == null){
+            FixedCircle.listener = google.maps.event.addListener(map, 'click', function(event) {
+                drawCircle({lat: event.latLng.lb, lng: event.latLng.mb, radius: radius})
+            })
+        }
+    } else {
+        map.setOptions({draggableCursor:null});
+        if (FixedCircle.listener != null){
+            google.maps.event.removeListener(FixedCircle.listener)
+            FixedCircle.listener = null
+        }
+    }
+}
+function drawCircle(config){
+    var circle = new google.maps.Circle(genericOptions)
+    circle.setMap(map)
+    circle.setCenter(new google.maps.LatLng(config.lat, config.lng))
+    circle.setRadius(config.radius)
+    overlayComplete(circle)
+}
+var lastClicked = null
+var overlayArray = []
+function overlayComplete(overlay) {
+    overlayArray.push(overlay)
+    saveOverlays()
+    // if (event.type == google.maps.drawing.OverlayType.CIRCLE)
+    toggleSelection(overlay)
+    google.maps.event.addDomListener(overlay, 'click', function(event) {
+        toggleSelection(this)
+    });
+    // deleted
+    google.maps.event.addDomListener(overlay, 'rightclick', function(event) {
+        this.setMap(null)
+        for (index in overlayArray){
+            if (overlayArray[index] == this){
+                overlayArray.splice(index,1)
+            }
+        }
+        saveOverlays()
+    });
+    // moved
+    google.maps.event.addListener(overlay, 'center_changed', function(event) { 
+        saveOverlays()
+    })
+    // resized
+    google.maps.event.addListener(overlay, 'radius_changed', function(event) { 
+        saveOverlays()
+    })
+}
+function saveOverlays(){
+    var simpleObjects = []
+    for (index in overlayArray){
+        var tmp = overlayArray[index]
+        var tmp2 = {}
+        tmp2.lat = tmp.getCenter().lat()
+        tmp2.lng = tmp.getCenter().lng()
+        tmp2.rad = tmp.getRadius()
+        simpleObjects.push(tmp2)
+    }
+    localStorage.overlays = JSON.stringify(simpleObjects)
+}
+function loadOverlays(map){
+    if (localStorage.overlays){
+        var simpleObjects = JSON.parse(localStorage.overlays)
+        for (index in simpleObjects){
+            var tmp = simpleObjects[index]
+            var circle = new google.maps.Circle(genericOptions)
+            circle.setMap(map)
+            circle.setCenter(new google.maps.LatLng(tmp.lat, tmp.lng))
+            circle.setRadius(tmp.rad)
+            overlayComplete(circle)
+        }
+    }
+}
+function toggleSelection(clickedDom){
+    var same = clickedDom == lastClicked
+    if (lastClicked != null && !same){
+        lastClicked.setOptions({ editable: false })
+    }
+    lastClicked = clickedDom
+    lastClicked.setOptions({ editable: same ? !lastClicked.editable : true })
+}
+function loadScripts() {
+  loadScript("https://maps.googleapis.com/maps/api/js?key=AIzaSyD3G3_wFagGpyfzubARdAT2O9KgkT0N49Y&sensor=false&callback=initialize&libraries=drawing");
+}
+function loadScript(url) {
+  var script = document.createElement("script");
+  script.type = "text/javascript";
+  script.src = url;
+  document.body.appendChild(script);
+}
+window.onload = loadScripts;
+    </script>
+  </head>
+  <body>
+    <div id="map-canvas" style="width: 100%; height: 100%"></div>
+  </body>
+</html>
